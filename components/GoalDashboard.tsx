@@ -80,7 +80,7 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
       const ai = new GoogleGenAI({ apiKey: geminiApiKey });
       const prompt = `Futuristic visionary art representing the achievement of: ${goal.titulo}. High quality, cinematic lighting, phoenix theme.`;
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.5-flash-image',
         contents: { parts: [{ text: prompt }] }
       });
       for (const part of response.candidates?.[0]?.content?.parts || []) {
