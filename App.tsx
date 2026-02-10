@@ -1,14 +1,29 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Goal } from './types';
 import GoalWizard from './components/GoalWizard';
 import GoalDashboard from './components/GoalDashboard';
 import { Plus, Flame, Trophy, CheckCircle2, Target, Activity, ChevronRight, Sparkles } from 'lucide-react';
 
+const STORAGE_KEY = 'fenix_goals';
+
+function loadGoals(): Goal[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function App() {
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<Goal[]>(loadGoals);
   const [view, setView] = useState<'list' | 'create' | 'dashboard'>('list');
   const [activeGoalId, setActiveGoalId] = useState<string | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
+  }, [goals]);
 
   const handleSaveGoal = (newGoal: Goal) => {
     setGoals((prev) => [...prev, newGoal]);
