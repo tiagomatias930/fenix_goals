@@ -76,7 +76,7 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
     if (!process.env.GEMINI_API_KEY) return;
     setIsGenerating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const ai = new GoogleGenAI({ apiKey: "AIzaSyBpbyWrlhUT8TkHVtQN1EAdBVDDtshe_7k"});
       const prompt = `Futuristic visionary art representing the achievement of: ${goal.titulo}. High quality, cinematic lighting, phoenix theme.`;
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
