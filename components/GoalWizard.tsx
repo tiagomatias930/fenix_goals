@@ -51,6 +51,7 @@ export default function GoalWizard({ onSave, onCancel }: GoalWizardProps) {
     if (canProceed() && phase < WizardPhase.VISUALIZATION) {
       setPhase(phase + 1);
     } else if (phase === WizardPhase.VISUALIZATION) {
+      const seed = Date.now();
       const newGoal: Goal = {
         id: crypto.randomUUID(),
         titulo,
@@ -64,6 +65,7 @@ export default function GoalWizard({ onSave, onCancel }: GoalWizardProps) {
         habilidades_necessarias: habilidades,
         parceiros_chave: parceiros,
         plano_acao: planoAcao,
+        imagem_visualizacao: `https://picsum.photos/seed/${seed}/800/600`,
         createdAt: Date.now()
       };
       onSave(newGoal);

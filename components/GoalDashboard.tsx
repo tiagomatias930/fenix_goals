@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { GoogleGenAI } from "@google/genai";
 import { Goal, ActionItem } from '../types';
 import { 
   ArrowLeft, Clock, AlertTriangle, CheckSquare, Target, Sparkles, 
@@ -29,24 +28,12 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
     return () => clearInterval(timer);
   }, [goal.data_limite, goal.status]);
 
-  const handleGenerateImage = async () => {
-    const geminiApiKey = "AIzaSyBldreqH3j7vR_tj4Zko3ZYB7A4uKnO7x0"
-    if (!geminiApiKey) return;
+  const handleGenerateImage = () => {
     setIsGenerating(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: geminiApiKey });
-      const prompt = `Futuristic visionary art representing the achievement of: ${goal.titulo}. High quality, cinematic lighting, phoenix theme.`;
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: { parts: [{ text: prompt }] }
-      });
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-          onUpdate({ ...goal, imagem_visualizacao: `data:image/png;base64,${part.inlineData.data}` });
-          break;
-        }
-      }
-    } catch (e) { console.error(e); } finally { setIsGenerating(false); }
+    const seed = Date.now();
+    const imageUrl = `https://picsum.photos/seed/${seed}/800/600`;
+    onUpdate({ ...goal, imagem_visualizacao: imageUrl });
+    setIsGenerating(false);
   };
 
   const toggleTask = (id: string) => {

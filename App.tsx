@@ -80,6 +80,10 @@ export default function App() {
               <p className="text-zinc-400 text-lg leading-relaxed max-w-2xl font-light">
                 Transforme desejos em realidade com clareza absoluta. Sua jornada para alta performance começa aqui.
               </p>
+              <blockquote className="mt-8 border-l-4 border-phoenix-500/60 pl-5 py-3 bg-phoenix-500/5 rounded-r-lg max-w-2xl">
+                <p className="text-zinc-300 italic text-base leading-relaxed">"Você se torna aquilo em que pensa a maior parte do tempo."</p>
+                <cite className="text-phoenix-400/80 text-xs font-bold uppercase tracking-wider mt-2 block not-italic">— Brian Tracy</cite>
+              </blockquote>
             </div>
 
             {goals.length === 0 ? (
