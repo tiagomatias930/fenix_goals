@@ -80,7 +80,7 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
       </div>
 
       <div className="relative p-12 rounded-3xl bg-gradient-to-br from-zinc-900/60 to-zinc-950/40 border border-zinc-800/60 overflow-hidden no-print animate-in fade-in slide-in-from-top-4 duration-700" style={{ animationDelay: '100ms' }}>
-        <div className="absolute inset-0 opacity-5 bg-center bg-cover" style={{ backgroundImage: `url(${goal.imagem_visualizacao || ''})` }} />
+        <div className="absolute inset-0 opacity-2 bg-center bg-cover" style={{ backgroundImage: `url(${goal.imagem_visualizacao || ''})` }} />
         <div className="absolute inset-0 bg-gradient-to-br from-phoenix-500/5 to-transparent pointer-events-none"></div>
         <div className="relative flex flex-col md:flex-row justify-between items-end gap-10">
           <div className="flex-1 space-y-6">
