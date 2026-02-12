@@ -152,7 +152,7 @@ export default function App() {
 
       <footer className="max-w-6xl mx-auto px-6 py-16 border-t border-zinc-900/50 text-center">
         <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] hover:text-zinc-400 transition-colors cursor-pointer">
-          🔥 Baseado no Seminário Fênix de Brian Tracy • Transformando Sonhos em Realidade
+          Baseado no Seminário Fênix de Brian Tracy • Transformando Sonhos em Realidade
         </p>
       </footer>
     </div>
