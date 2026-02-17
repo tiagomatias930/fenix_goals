@@ -28,6 +28,7 @@ export default function GoalWizard({ onSave, onCancel }: GoalWizardProps) {
   const [tempPorque, setTempPorque] = useState('');
   const [listaPorques, setListaPorques] = useState<string[]>([]);
   const [dataLimite, setDataLimite] = useState('');
+  const [horaLimite, setHoraLimite] = useState('');
   const [obstaculo, setObstaculo] = useState('');
   const [habilidades, setHabilidades] = useState('');
   const [parceiros, setParceiros] = useState('');
@@ -61,6 +62,7 @@ export default function GoalWizard({ onSave, onCancel }: GoalWizardProps) {
         ponto_partida: pontoPartida,
         lista_porques: listaPorques,
         data_limite: dataLimite,
+        hora_limite: horaLimite,
         obstaculo_principal: obstaculo,
         habilidades_necessarias: habilidades,
         parceiros_chave: parceiros,
@@ -143,9 +145,15 @@ export default function GoalWizard({ onSave, onCancel }: GoalWizardProps) {
         {phase === WizardPhase.CONSTRAINTS && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold">Prazos e Limitações</h2>
-            <div>
-              <label className={labelClass}>Data Limite</label>
-              <input type="date" value={dataLimite} onChange={(e) => setDataLimite(e.target.value)} className={inputClass} />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Data Limite</label>
+                <input type="date" value={dataLimite} onChange={(e) => setDataLimite(e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Hora Limite</label>
+                <input type="time" value={horaLimite} onChange={(e) => setHoraLimite(e.target.value)} className={inputClass} />
+              </div>
             </div>
             <div>
               <label className={labelClass}>Obstáculo Principal (O Gargalo)</label>
@@ -192,7 +200,7 @@ export default function GoalWizard({ onSave, onCancel }: GoalWizardProps) {
             <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-left">
               <p className="text-lg font-bold">"{titulo}"</p>
               <div className="mt-2 flex gap-4 text-xs text-zinc-500">
-                <span>📅 {dataLimite}</span>
+                <span>📅 {dataLimite}{horaLimite ? ` às ${horaLimite}` : ''}</span>
                 <span className="text-phoenix-500">🔥 INTENSIDADE {intensidade}</span>
               </div>
             </div>

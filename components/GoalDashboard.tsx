@@ -19,14 +19,18 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
   useEffect(() => {
     if (goal.status === 'concluido') return;
     const timer = setInterval(() => {
-      const diff = +new Date(goal.data_limite) - +new Date();
+      const deadline = goal.hora_limite
+        ? new Date(`${goal.data_limite}T${goal.hora_limite}`)
+        : new Date(goal.data_limite);
+      const diff = +deadline - +new Date();
       if (diff <= 0) { setTimeLeft("Expirado"); return; }
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      setTimeLeft(`${d}d ${h}h`);
+      const m = Math.floor((diff / (1000 * 60)) % 60);
+      setTimeLeft(`${d}d ${h}h ${m}m`);
     }, 1000);
     return () => clearInterval(timer);
-  }, [goal.data_limite, goal.status]);
+  }, [goal.data_limite, goal.hora_limite, goal.status]);
 
   const handleGenerateImage = () => {
     setIsGenerating(true);
