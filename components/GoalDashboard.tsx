@@ -121,7 +121,7 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
               position: 'absolute', inset: 0,
               backgroundImage: `url(${goal.imagem_visualizacao})`,
               backgroundSize: 'cover', backgroundPosition: 'center',
-              opacity: 0.03,
+              opacity: 0,
             }} />
           )}
           <Box sx={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${alpha('#f97316', 0.04)}, transparent)`, pointerEvents: 'none' }} />
