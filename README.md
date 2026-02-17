@@ -26,7 +26,7 @@ Diferente de simples listas de tarefas, o Fênix Goals força o usuário a atrav
 
 -   **Fluxo Wizard Dirigido:** Um guia passo a passo que impede a criação de metas rasas.
 -   **Dashboard de Performance:** Visualização de progresso com gráficos de linha do tempo SVG dinâmicos.
--   **IA Visualizer:** Integração com a `gemini-2.5-flash-image` para gerar imagens inspiradoras baseadas na descrição da meta.
+-   **IA Visualizer:** Integração com a `picsum.photos` para gerar imagens inspiradoras baseadas na descrição da meta.
 -   **Gerador de Certificados:** Emissão de certificados de conquista (formato para impressão) ao concluir um objetivo.
 -   **Countdown Inteligente:** Rastreador de tempo real para o deadline da meta.
 -   **Interface Dark Premium:** Design focado em concentração e seriedade, utilizando Tailwind CSS.
@@ -36,7 +36,6 @@ Diferente de simples listas de tarefas, o Fênix Goals força o usuário a atrav
 -   **Frontend:** React 19 (Hooks, Context, Memoization).
 -   **Estilização:** Tailwind CSS (Custom Theme).
 -   **Ícones:** Lucide React.
--   **IA:** Google Generative AI SDK (@google/genai).
 -   **Arquitetura:** Componentização baseada em estados claros e tipos TypeScript rigorosos.
 
 ## 📦 Como Utilizar

@@ -4,43 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Fênix Goals | Seminário de Alta Performance</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              zinc: {
-                950: '#09090b',
-                900: '#121214',
-                800: '#1a1a1e',
-              },
-              phoenix: {
-                50: '#fff7ed',
-                100: '#ffedd5',
-                200: '#fed7aa',
-                300: '#fdba74',
-                400: '#fb923c',
-                500: '#f97316',
-                600: '#ea580c',
-                700: '#c2410c',
-                800: '#9a3412',
-                900: '#7c2d12',
-              }
-            },
-            fontFamily: {
-              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-              serif: ['Playfair Display', 'Georgia', 'serif'],
-              mono: ['JetBrains Mono', 'Menlo', 'monospace'],
-            }
-          }
-        }
-      }
-    </script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-      
+
       :root {
         color-scheme: dark;
       }
@@ -49,108 +15,13 @@
         scroll-behavior: smooth;
       }
 
-      body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        background: linear-gradient(135deg, #09090b 0%, #121214 50%, #09090b 100%);
-        background-attachment: fixed;
-        color: #fafafa;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        line-height: 1.6;
-      }
-
-      h1, h2, h3, h4, h5, h6 {
-        letter-spacing: -0.01em;
-        font-feature-settings: "salt" 1;
-      }
-
-      * {
-        transition-property: all;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 300ms;
-      }
-
-      button, a, input, textarea, select {
-        transition-duration: 200ms;
-      }
-
-      button:focus-visible,
-      a:focus-visible,
-      input:focus-visible,
-      textarea:focus-visible {
-        outline: 2px solid #f97316;
-        outline-offset: 2px;
-      }
-
-      ::selection {
-        background-color: rgba(249, 115, 22, 0.3);
-        color: #fafafa;
-      }
-
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-
-      ::-webkit-scrollbar-track {
-        background: #09090b;
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background: #a1a1a1;
-        border-radius: 4px;
-      }
-
-      ::-webkit-scrollbar-thumb:hover {
-        background: #d4d4d8;
-      }
-
-      .phoenix-gradient {
-        background: linear-gradient(135deg, #f97316 0%, #dc2626 100%);
-      }
-
-      .phoenix-text-gradient {
-        background: linear-gradient(135deg, #fb923c 0%, #ef4444 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-
-      .btn-glow:hover {
-        box-shadow: 0 0 20px rgba(249, 115, 22, 0.4);
-      }
-
-      @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-8px); }
-      }
-
-      @keyframes glow-pulse {
+      @keyframes pulse {
         0%, 100% { opacity: 1; }
-        50% { opacity: 0.8; }
-      }
-
-      .animate-float {
-        animation: float 3s ease-in-out infinite;
-      }
-
-      .animate-glow {
-        animation: glow-pulse 2s ease-in-out infinite;
-      }
-
-      .bg-clip-text {
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-
-      .glass {
-        background: rgba(18, 18, 20, 0.8);
-        backdrop-filter: blur(16px);
-        border: 1px solid rgba(249, 115, 22, 0.1);
+        50% { opacity: 0.5; }
       }
     </style>
   </head>
-  <body class="selection:bg-phoenix-500/30">
+  <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

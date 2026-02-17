@@ -1,7 +1,21 @@
 
 import React, { useState } from 'react';
 import { Goal, ActionItem } from '../types';
-import { ChevronRight, ChevronLeft, Check, Target, Calendar, Rocket } from 'lucide-react';
+import {
+  Box, Card, CardContent, Typography, TextField, Button, Slider, Checkbox,
+  FormControlLabel, Stepper, Step, StepLabel, Stack, Chip, IconButton,
+  Paper, Fade, List, ListItem, ListItemText, ListItemIcon
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import CheckIcon from '@mui/icons-material/Check';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import AddIcon from '@mui/icons-material/Add';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import WhatshotIcon from '@mui/icons-material/Whatshot';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import TagIcon from '@mui/icons-material/Tag';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
 interface GoalWizardProps {
   onSave: (goal: Goal) => void;
@@ -17,6 +31,16 @@ enum WizardPhase {
   PLANNING = 5,
   VISUALIZATION = 6
 }
+
+const phaseLabels = [
+  'Desejo',
+  'Cristalizar',
+  'Motivação',
+  'Prazos',
+  'Recursos',
+  'Plano',
+  'Confirmar'
+];
 
 export default function GoalWizard({ onSave, onCancel }: GoalWizardProps) {
   const [phase, setPhase] = useState<WizardPhase>(WizardPhase.DESIRE_BELIEF);
@@ -57,7 +81,7 @@ export default function GoalWizard({ onSave, onCancel }: GoalWizardProps) {
         id: crypto.randomUUID(),
         titulo,
         desejo_intensidade: intensidade,
-        status: 'em_andamento', // Status inicial
+        status: 'em_andamento',
         status_escrita: statusEscrita,
         ponto_partida: pontoPartida,
         lista_porques: listaPorques,
@@ -74,148 +98,292 @@ export default function GoalWizard({ onSave, onCancel }: GoalWizardProps) {
     }
   };
 
-  const inputClass = "w-full bg-zinc-950 border border-zinc-800 rounded-md px-4 py-2.5 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-phoenix-500 focus:border-phoenix-500 transition-all";
-  const labelClass = "block text-[11px] font-mono font-bold text-zinc-500 uppercase tracking-wider mb-2";
+  const handleAddPorque = () => {
+    if (tempPorque.trim()) {
+      setListaPorques([...listaPorques, tempPorque.trim()]);
+      setTempPorque('');
+    }
+  };
+
+  const handleAddTarefa = () => {
+    if (tempTarefa.trim()) {
+      setPlanoAcao([...planoAcao, { id: crypto.randomUUID(), text: tempTarefa.trim(), completed: false }]);
+      setTempTarefa('');
+    }
+  };
 
   return (
-    <div className="max-w-2xl mx-auto border border-zinc-800 bg-zinc-900/50 rounded-xl shadow-2xl overflow-hidden">
-      <div className="bg-zinc-950 px-8 py-4 border-b border-zinc-800 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-phoenix-500 animate-pulse"></div>
-          <span className="text-[10px] font-mono text-zinc-400 uppercase">Passo {phase + 1} de 7</span>
-        </div>
-        <div className="flex gap-1">
-          {[...Array(7)].map((_, i) => (
-            <div key={i} className={`h-1 w-4 rounded-full transition-all duration-500 ${i <= phase ? 'bg-phoenix-500' : 'bg-zinc-800'}`} />
+    <Card sx={{ maxWidth: 720, mx: 'auto', overflow: 'hidden' }}>
+      {/* Stepper Header */}
+      <Box sx={{ bgcolor: 'background.default', px: 4, pt: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Stepper activeStep={phase} alternativeLabel>
+          {phaseLabels.map((label) => (
+            <Step key={label}>
+              <StepLabel>
+                <Typography variant="caption" sx={{ fontSize: '0.65rem', fontWeight: 600, color: 'text.secondary' }}>
+                  {label}
+                </Typography>
+              </StepLabel>
+            </Step>
           ))}
-        </div>
-      </div>
+        </Stepper>
+      </Box>
 
-      <div className="p-10 space-y-8">
-        {phase === WizardPhase.DESIRE_BELIEF && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">O Desejo Ardente</h2>
-            <div>
-              <label className={labelClass}>O que exatamente você quer atingir?</label>
-              <input type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: Masterizar Desenvolvimento Mobile em 6 meses" className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Intensidade do Desejo: {intensidade}/10</label>
-              <input type="range" min="1" max="10" value={intensidade} onChange={(e) => setIntensidade(Number(e.target.value))} className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-phoenix-500" />
-            </div>
-          </div>
-        )}
+      {/* Content */}
+      <CardContent sx={{ p: 5 }}>
+        <Fade in key={phase} timeout={400}>
+          <Box>
+            {/* Phase 0: Desire */}
+            {phase === WizardPhase.DESIRE_BELIEF && (
+              <Stack spacing={4}>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>O Desejo Ardente</Typography>
+                  <Typography variant="body2" color="text.secondary">Defina com clareza o que você quer conquistar.</Typography>
+                </Box>
+                <TextField
+                  label="O que exatamente você quer atingir?"
+                  value={titulo}
+                  onChange={(e) => setTitulo(e.target.value)}
+                  placeholder="Ex: Masterizar Desenvolvimento Mobile em 6 meses"
+                  fullWidth
+                  variant="outlined"
+                />
+                <Box>
+                  <Typography variant="overline" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                    Intensidade do Desejo: <Box component="span" sx={{ color: 'primary.main', fontWeight: 800 }}>{intensidade}/10</Box>
+                  </Typography>
+                  <Slider
+                    value={intensidade}
+                    onChange={(_, val) => setIntensidade(val as number)}
+                    min={1}
+                    max={10}
+                    step={1}
+                    marks
+                    valueLabelDisplay="auto"
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              </Stack>
+            )}
 
-        {phase === WizardPhase.CRYSTALLIZE && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Cristalização</h2>
-            <div className="bg-zinc-950 p-4 rounded-md border border-zinc-800">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${statusEscrita ? 'bg-phoenix-500 border-phoenix-500' : 'border-zinc-700 bg-zinc-900'}`}>
-                  {statusEscrita && <Check className="w-3 h-3 text-white" />}
-                </div>
-                <input type="checkbox" className="hidden" checked={statusEscrita} onChange={(e) => setStatusEscrita(e.target.checked)} />
-                <span className="text-sm text-zinc-300">Eu escrevi este objetivo em papel físico.</span>
-              </label>
-            </div>
-            <div>
-              <label className={labelClass}>Onde você está agora?</label>
-              <textarea value={pontoPartida} onChange={(e) => setPontoPartida(e.target.value)} placeholder="Seja brutalmente honesto sobre sua situação atual..." className={inputClass + " h-32 resize-none"} />
-            </div>
-          </div>
-        )}
+            {/* Phase 1: Crystallize */}
+            {phase === WizardPhase.CRYSTALLIZE && (
+              <Stack spacing={4}>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Cristalização</Typography>
+                  <Typography variant="body2" color="text.secondary">Torne seu objetivo tangível e real.</Typography>
+                </Box>
+                <Paper variant="outlined" sx={{ p: 2, borderRadius: 3, bgcolor: alpha('#f97316', 0.03) }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={statusEscrita}
+                        onChange={(e) => setStatusEscrita(e.target.checked)}
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        Eu escrevi este objetivo em papel físico.
+                      </Typography>
+                    }
+                  />
+                </Paper>
+                <TextField
+                  label="Onde você está agora?"
+                  value={pontoPartida}
+                  onChange={(e) => setPontoPartida(e.target.value)}
+                  placeholder="Seja brutalmente honesto sobre sua situação atual..."
+                  fullWidth
+                  multiline
+                  rows={4}
+                  variant="outlined"
+                />
+              </Stack>
+            )}
 
-        {phase === WizardPhase.MOTIVATION && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">O Combustível</h2>
-            <div className="flex gap-2">
-              <input type="text" value={tempPorque} onChange={(e) => setTempPorque(e.target.value)} placeholder="Por que isso é importante?" className={inputClass} />
-              <button onClick={() => { if(tempPorque.trim()) { setListaPorques([...listaPorques, tempPorque.trim()]); setTempPorque(''); } }} className="px-4 bg-zinc-800 rounded-md text-xs font-bold uppercase">ADD</button>
-            </div>
-            <div className="space-y-2">
-              {listaPorques.map((p, idx) => (
-                <div key={idx} className="p-3 bg-zinc-950 border border-zinc-800 rounded-md text-sm text-zinc-400">
-                  <span className="text-phoenix-500 mr-2">#{idx+1}</span> {p}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+            {/* Phase 2: Motivation */}
+            {phase === WizardPhase.MOTIVATION && (
+              <Stack spacing={4}>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>O Combustível</Typography>
+                  <Typography variant="body2" color="text.secondary">Liste pelo menos 3 razões poderosas. ({listaPorques.length}/3 mínimo)</Typography>
+                </Box>
+                <Stack direction="row" spacing={1}>
+                  <TextField
+                    value={tempPorque}
+                    onChange={(e) => setTempPorque(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddPorque()}
+                    placeholder="Por que isso é importante?"
+                    fullWidth
+                    size="small"
+                    variant="outlined"
+                  />
+                  <Button variant="contained" onClick={handleAddPorque} sx={{ minWidth: 48, px: 2 }}>
+                    <AddIcon />
+                  </Button>
+                </Stack>
+                <Stack spacing={1.5}>
+                  {listaPorques.map((p, idx) => (
+                    <Paper key={idx} variant="outlined" sx={{ p: 2, borderRadius: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Chip label={`#${idx + 1}`} size="small" color="primary" sx={{ fontWeight: 700, minWidth: 36 }} />
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>{p}</Typography>
+                    </Paper>
+                  ))}
+                </Stack>
+              </Stack>
+            )}
 
-        {phase === WizardPhase.CONSTRAINTS && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Prazos e Limitações</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>Data Limite</label>
-                <input type="date" value={dataLimite} onChange={(e) => setDataLimite(e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>Hora Limite</label>
-                <input type="time" value={horaLimite} onChange={(e) => setHoraLimite(e.target.value)} className={inputClass} />
-              </div>
-            </div>
-            <div>
-              <label className={labelClass}>Obstáculo Principal (O Gargalo)</label>
-              <textarea value={obstaculo} onChange={(e) => setObstaculo(e.target.value)} placeholder="O que te impede hoje?" className={inputClass + " h-24 resize-none"} />
-            </div>
-          </div>
-        )}
+            {/* Phase 3: Constraints */}
+            {phase === WizardPhase.CONSTRAINTS && (
+              <Stack spacing={4}>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Prazos e Limitações</Typography>
+                  <Typography variant="body2" color="text.secondary">Defina um deadline e identifique o maior obstáculo.</Typography>
+                </Box>
+                <Stack direction="row" spacing={2}>
+                  <TextField
+                    label="Data Limite"
+                    type="date"
+                    value={dataLimite}
+                    onChange={(e) => setDataLimite(e.target.value)}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    variant="outlined"
+                  />
+                  <TextField
+                    label="Hora Limite"
+                    type="time"
+                    value={horaLimite}
+                    onChange={(e) => setHoraLimite(e.target.value)}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    variant="outlined"
+                  />
+                </Stack>
+                <TextField
+                  label="Obstáculo Principal (O Gargalo)"
+                  value={obstaculo}
+                  onChange={(e) => setObstaculo(e.target.value)}
+                  placeholder="O que te impede hoje?"
+                  fullWidth
+                  multiline
+                  rows={3}
+                  variant="outlined"
+                />
+              </Stack>
+            )}
 
-        {phase === WizardPhase.RESOURCES && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Recursos e Alianças</h2>
-            <div>
-              <label className={labelClass}>Habilidades a Desenvolver</label>
-              <input type="text" value={habilidades} onChange={(e) => setHabilidades(e.target.value)} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Quem pode te ajudar?</label>
-              <input type="text" value={parceiros} onChange={(e) => setParceiros(e.target.value)} className={inputClass} />
-            </div>
-          </div>
-        )}
+            {/* Phase 4: Resources */}
+            {phase === WizardPhase.RESOURCES && (
+              <Stack spacing={4}>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Recursos e Alianças</Typography>
+                  <Typography variant="body2" color="text.secondary">O que você precisa aprender e quem pode ajudar?</Typography>
+                </Box>
+                <TextField
+                  label="Habilidades a Desenvolver"
+                  value={habilidades}
+                  onChange={(e) => setHabilidades(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                />
+                <TextField
+                  label="Quem pode te ajudar?"
+                  value={parceiros}
+                  onChange={(e) => setParceiros(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                />
+              </Stack>
+            )}
 
-        {phase === WizardPhase.PLANNING && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Plano de Ação</h2>
-            <div className="flex gap-2">
-              <input type="text" value={tempTarefa} onChange={(e) => setTempTarefa(e.target.value)} placeholder="Adicionar tarefa..." className={inputClass} />
-              <button onClick={() => { if(tempTarefa.trim()) { setPlanoAcao([...planoAcao, { id: crypto.randomUUID(), text: tempTarefa.trim(), completed: false }]); setTempTarefa(''); } }} className="px-4 bg-zinc-800 rounded-md text-xs font-bold uppercase">PUSH</button>
-            </div>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {planoAcao.map((t, i) => (
-                <div key={t.id} className="p-3 bg-zinc-950 border border-zinc-800 rounded-md text-sm text-zinc-300">
-                   [{i+1}] {t.text}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+            {/* Phase 5: Planning */}
+            {phase === WizardPhase.PLANNING && (
+              <Stack spacing={4}>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>Plano de Ação</Typography>
+                  <Typography variant="body2" color="text.secondary">Adicione as tarefas concretas para atingir seu objetivo.</Typography>
+                </Box>
+                <Stack direction="row" spacing={1}>
+                  <TextField
+                    value={tempTarefa}
+                    onChange={(e) => setTempTarefa(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddTarefa()}
+                    placeholder="Adicionar tarefa..."
+                    fullWidth
+                    size="small"
+                    variant="outlined"
+                  />
+                  <Button variant="contained" onClick={handleAddTarefa} sx={{ minWidth: 48, px: 2 }}>
+                    <AddIcon />
+                  </Button>
+                </Stack>
+                <Stack spacing={1} sx={{ maxHeight: 200, overflowY: 'auto', pr: 1 }}>
+                  {planoAcao.map((t, i) => (
+                    <Paper key={t.id} variant="outlined" sx={{ p: 2, borderRadius: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <PlaylistAddCheckIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        <Box component="span" sx={{ fontWeight: 700, color: 'text.primary', mr: 1 }}>[{i + 1}]</Box>
+                        {t.text}
+                      </Typography>
+                    </Paper>
+                  ))}
+                </Stack>
+              </Stack>
+            )}
 
-        {phase === WizardPhase.VISUALIZATION && (
-          <div className="text-center py-6 space-y-6">
-            <Rocket className="w-16 h-16 text-phoenix-500 mx-auto" />
-            <h3 className="text-xl font-bold">Confirmar Compromisso</h3>
-            <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-left">
-              <p className="text-lg font-bold">"{titulo}"</p>
-              <div className="mt-2 flex gap-4 text-xs text-zinc-500">
-                <span>📅 {dataLimite}{horaLimite ? ` às ${horaLimite}` : ''}</span>
-                <span className="text-phoenix-500">🔥 INTENSIDADE {intensidade}</span>
-              </div>
-            </div>
-          </div>
-        )}
+            {/* Phase 6: Visualization */}
+            {phase === WizardPhase.VISUALIZATION && (
+              <Stack spacing={4} alignItems="center" sx={{ py: 2 }}>
+                <RocketLaunchIcon sx={{ fontSize: 64, color: 'primary.main', filter: 'drop-shadow(0 0 16px rgba(249,115,22,0.3))' }} />
+                <Typography variant="h5" sx={{ fontWeight: 700 }}>Confirmar Compromisso</Typography>
+                <Paper
+                  variant="outlined"
+                  sx={{ p: 3, borderRadius: 3, width: '100%', bgcolor: alpha('#f97316', 0.03) }}
+                >
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                    "{titulo}"
+                  </Typography>
+                  <Stack direction="row" spacing={3} sx={{ mt: 1 }}>
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <CalendarMonthIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                      <Typography variant="caption" color="text.secondary">
+                        {dataLimite}{horaLimite ? ` às ${horaLimite}` : ''}
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <WhatshotIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                      <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 700 }}>
+                        INTENSIDADE {intensidade}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Paper>
+              </Stack>
+            )}
+          </Box>
+        </Fade>
 
-        <div className="flex justify-between pt-6 border-t border-zinc-800">
-          <button onClick={phase === 0 ? onCancel : () => setPhase(phase - 1)} className="px-4 py-2 text-zinc-500 hover:text-white transition-colors">
+        {/* Navigation */}
+        <Stack direction="row" justifyContent="space-between" sx={{ mt: 5, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Button
+            variant="text"
+            startIcon={phase > 0 ? <ArrowBackIcon /> : undefined}
+            onClick={phase === 0 ? onCancel : () => setPhase(phase - 1)}
+            sx={{ color: 'text.secondary' }}
+          >
             {phase === 0 ? 'Cancelar' : 'Voltar'}
-          </button>
-          <button onClick={handleNext} disabled={!canProceed()} className={`px-8 py-2 rounded-md font-bold transition-all ${canProceed() ? 'bg-white text-zinc-950' : 'bg-zinc-800 text-zinc-600'}`}>
+          </Button>
+          <Button
+            variant="contained"
+            endIcon={phase < WizardPhase.VISUALIZATION ? <ArrowForwardIcon /> : <RocketLaunchIcon />}
+            onClick={handleNext}
+            disabled={!canProceed()}
+          >
             {phase === WizardPhase.VISUALIZATION ? 'Iniciar Jornada' : 'Próximo'}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }

@@ -3,7 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { Goal } from './types';
 import GoalWizard from './components/GoalWizard';
 import GoalDashboard from './components/GoalDashboard';
-import { Plus, Flame, Trophy, CheckCircle2, Target, Activity, ChevronRight, Sparkles, Zap, Star, BookOpen, Heart } from 'lucide-react';
+import {
+  AppBar, Toolbar, Typography, Button, Container, Box, Card, CardContent,
+  CardActionArea, Chip, LinearProgress, Stack, Fade, Grow
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import AddIcon from '@mui/icons-material/Add';
+import WhatshotIcon from '@mui/icons-material/Whatshot';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import BoltIcon from '@mui/icons-material/Bolt';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import StarIcon from '@mui/icons-material/Star';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 
 const STORAGE_KEY = 'fenix_goals';
 
@@ -44,121 +57,189 @@ export default function App() {
   const completedGoals = goals.filter(g => g.status === 'concluido');
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-phoenix-500/30">
-      <header className="sticky top-0 z-50 border-b border-zinc-800/60 bg-gradient-to-b from-zinc-950 to-zinc-950/90 backdrop-blur-xl transition-all duration-300">
-        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setView('list')}>
-            <div className="relative">
-              <Flame className="w-8 h-8 text-phoenix-500 fill-current group-hover:scale-110 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-phoenix-500/30 rounded-full blur-lg group-hover:blur-xl transition-all duration-300 -z-10"></div>
-            </div>
-            <div className="flex flex-col group-hover:translate-x-1 transition-transform duration-300">
-              <span className="text-xl font-bold tracking-tight text-white leading-none">Fênix Goals</span>
-              <span className="text-[10px] font-mono text-phoenix-400/80 uppercase tracking-widest leading-tight mt-1 flex items-center gap-1">
-                <Zap className="w-3 h-3" /> Potencial Infinito
-              </span>
-            </div>
-          </div>
-          
-          <button onClick={() => setView('create')} className="px-6 py-2.5 rounded-full bg-gradient-to-r from-phoenix-600 to-phoenix-500 hover:from-phoenix-500 hover:to-phoenix-400 text-white text-xs font-bold transition-all duration-300 active:scale-95 shadow-lg shadow-phoenix-900/30 hover:shadow-phoenix-900/50 flex items-center gap-2 group">
-            <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" /> NOVO OBJETIVO
-          </button>
-        </div>
-      </header>
+    <Box sx={{ minHeight: '100vh' }}>
+      {/* App Bar */}
+      <AppBar position="sticky" elevation={0}>
+        <Toolbar sx={{ maxWidth: 1152, width: '100%', mx: 'auto', px: { xs: 2, md: 3 }, height: 72 }}>
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer', flexGrow: 1 }}
+            onClick={() => setView('list')}
+          >
+            <Box sx={{ position: 'relative', display: 'flex' }}>
+              <WhatshotIcon sx={{ fontSize: 32, color: 'primary.main', filter: 'drop-shadow(0 0 8px rgba(249,115,22,0.4))' }} />
+            </Box>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, color: 'white' }}>
+                Fênix Goals
+              </Typography>
+              <Typography variant="overline" sx={{ fontSize: '0.6rem', color: 'primary.light', display: 'flex', alignItems: 'center', gap: 0.5, lineHeight: 1.4 }}>
+                <BoltIcon sx={{ fontSize: 12 }} /> Potencial Infinito
+              </Typography>
+            </Box>
+          </Box>
 
-      <main className="max-w-6xl mx-auto px-6 py-12">
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setView('create')}
+            sx={{ borderRadius: 8, px: 3, fontWeight: 700, fontSize: '0.8rem' }}
+          >
+            Novo Objetivo
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      {/* Main Content */}
+      <Container maxWidth="lg" sx={{ py: 6 }}>
         {view === 'list' && (
-          <div className="space-y-16">
-            <div className="max-w-3xl">
-              <div className="flex items-center gap-3 mb-4">
-                <Heart className="w-6 h-6 text-phoenix-500 fill-phoenix-500" />
-                <span className="text-sm font-bold text-phoenix-400 uppercase tracking-widest">Bem-vindo de volta</span>
-              </div>
-              <h2 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 text-white leading-[0.9]">
-                Desperte o seu <span className="bg-gradient-to-r from-phoenix-400 to-phoenix-500 bg-clip-text text-transparent italic">potencial agora </span>.
-              </h2>
-              <p className="text-zinc-400 text-lg leading-relaxed max-w-2xl font-light">
-                Transforme desejos em realidade com clareza absoluta. Sua jornada para alta performance começa aqui.
-              </p>
-              <blockquote className="mt-8 border-l-4 border-phoenix-500/60 pl-5 py-3 bg-phoenix-500/5 rounded-r-lg max-w-2xl">
-                <p className="text-zinc-300 italic text-base leading-relaxed">"Você se torna aquilo em que pensa a maior parte do tempo."</p>
-                <cite className="text-phoenix-400/80 text-xs font-bold uppercase tracking-wider mt-2 block not-italic">— Brian Tracy</cite>
-              </blockquote>
-            </div>
+          <Fade in timeout={600}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {/* Hero */}
+              <Box sx={{ maxWidth: 720 }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                  <FavoriteIcon sx={{ color: 'primary.main', fontSize: 22 }} />
+                  <Typography variant="overline" sx={{ color: 'primary.light', fontSize: '0.7rem' }}>
+                    Bem-vindo de volta
+                  </Typography>
+                </Stack>
+                <Typography variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '3.8rem' }, fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 0.95, mb: 3 }}>
+                  Desperte o seu{' '}
+                  <Box component="span" sx={{ background: 'linear-gradient(135deg, #fb923c, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontStyle: 'italic' }}>
+                    potencial agora
+                  </Box>
+                  .
+                </Typography>
+                <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '1.1rem', maxWidth: 600, lineHeight: 1.7, fontWeight: 300 }}>
+                  Transforme desejos em realidade com clareza absoluta. Sua jornada para alta performance começa aqui.
+                </Typography>
+                <Card sx={{ mt: 4, borderLeft: '4px solid', borderColor: 'primary.dark', bgcolor: alpha('#f97316', 0.04) }}>
+                  <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary', lineHeight: 1.6 }}>
+                      "Você se torna aquilo em que pensa a maior parte do tempo."
+                    </Typography>
+                    <Typography variant="overline" sx={{ color: 'primary.dark', fontSize: '0.6rem', mt: 1, display: 'block' }}>
+                      — Brian Tracy
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Box>
 
-            {goals.length === 0 ? (
-              <div className="border border-dashed border-zinc-800 hover:border-phoenix-500/30 rounded-3xl p-24 text-center transition-all duration-500 bg-gradient-to-b from-zinc-900/20 to-transparent">
-                <div className="relative mb-6">
-                  <BookOpen className="w-16 h-16 text-zinc-600 mx-auto" />
-                  <Star className="w-8 h-8 text-phoenix-400 absolute top-0 right-1/3 animate-pulse" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Inicie sua primeira jornada</h3>
-                <p className="text-zinc-400 text-sm mb-8">Crie um objetivo e comece sua transformação pessoal agora</p>
-                <button onClick={() => setView('create')} className="bg-gradient-to-r from-phoenix-600 to-phoenix-500 hover:from-phoenix-500 hover:to-phoenix-400 text-white px-8 py-3 rounded-full font-bold text-sm shadow-lg shadow-phoenix-900/30 hover:shadow-phoenix-900/50 transition-all duration-300 hover:scale-105">
-                  Definir Objetivo Primário
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-20">
-                {activeGoals.length > 0 && (
-                  <div className="animate-in fade-in slide-in-from-top-4 duration-700">
-                    <h3 className="text-[11px] font-bold text-phoenix-500 uppercase tracking-[0.4em] mb-10 flex items-center gap-3">
-                      <Flame className="w-4 h-4 fill-current animate-bounce" /> JORNADAS ATIVAS
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {activeGoals.map((goal, idx) => (
-                        <div key={goal.id} onClick={() => handleViewGoal(goal.id)} className="group bg-gradient-to-br from-zinc-900/60 to-zinc-950/40 border border-zinc-800 hover:border-phoenix-500/50 p-8 rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-phoenix-500/10 hover:-translate-y-1" style={{ animationDelay: `${idx * 100}ms` }}>
-                          <div className="flex items-start justify-between mb-4">
-                            <h3 className="text-2xl font-bold text-white leading-tight flex-1 group-hover:text-phoenix-300 transition-colors">{goal.titulo}</h3>
-                            <Zap className="w-5 h-5 text-phoenix-400/60 group-hover:text-phoenix-400 group-hover:animate-pulse transition-all" />
-                          </div>
-                          <div className="space-y-4">
-                            <div className="flex justify-between text-[10px] font-bold uppercase text-zinc-500">
-                              <span>PROGRESSO</span>
-                              <span className="text-phoenix-300 bg-phoenix-950/40 px-2 py-1 rounded-full">{goal.status.replace('_', ' ')}</span>
-                            </div>
-                            <div className="w-full bg-zinc-800/50 h-2 rounded-full overflow-hidden">
-                              <div className="h-full bg-gradient-to-r from-phoenix-600 to-phoenix-400 transition-all duration-700 rounded-full" style={{ width: `${(goal.plano_acao.filter(t => t.completed).length / Math.max(goal.plano_acao.length, 1)) * 100}%` }} />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              {/* Empty State */}
+              {goals.length === 0 ? (
+                <Grow in timeout={800}>
+                  <Card
+                    sx={{
+                      textAlign: 'center',
+                      py: 10,
+                      px: 4,
+                      border: '2px dashed',
+                      borderColor: 'divider',
+                      bgcolor: 'transparent',
+                      '&:hover': { borderColor: alpha('#f97316', 0.3) },
+                    }}
+                  >
+                    <CardContent>
+                      <Box sx={{ position: 'relative', mb: 3, display: 'inline-flex' }}>
+                        <AutoStoriesIcon sx={{ fontSize: 56, color: 'text.secondary', opacity: 0.4 }} />
+                        <StarIcon sx={{ fontSize: 28, color: 'primary.light', position: 'absolute', top: -4, right: -12, animation: 'pulse 2s infinite' }} />
+                      </Box>
+                      <Typography variant="h5" sx={{ mb: 1, fontWeight: 700 }}>Inicie sua primeira jornada</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4 }}>
+                        Crie um objetivo e comece sua transformação pessoal agora
+                      </Typography>
+                      <Button variant="contained" size="large" onClick={() => setView('create')} startIcon={<RocketLaunchIcon />} sx={{ borderRadius: 8, px: 4 }}>
+                        Definir Objetivo Primário
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grow>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {/* Active Goals */}
+                  {activeGoals.length > 0 && (
+                    <Box>
+                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 4 }}>
+                        <WhatshotIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                        <Typography variant="overline" sx={{ color: 'primary.main', fontSize: '0.7rem' }}>
+                          Jornadas Ativas
+                        </Typography>
+                      </Stack>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
+                        {activeGoals.map((goal) => {
+                          const progress = (goal.plano_acao.filter(t => t.completed).length / Math.max(goal.plano_acao.length, 1)) * 100;
+                          return (
+                            <Card key={goal.id} sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)' } }}>
+                              <CardActionArea onClick={() => handleViewGoal(goal.id)} sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+                                  <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2, flex: 1, pr: 1 }}>
+                                    {goal.titulo}
+                                  </Typography>
+                                  <BoltIcon sx={{ fontSize: 20, color: alpha('#f97316', 0.5) }} />
+                                </Stack>
+                                <Box sx={{ mt: 'auto', pt: 2 }}>
+                                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                                    <Typography variant="overline" sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Progresso</Typography>
+                                    <Chip label={`${Math.round(progress)}%`} size="small" color="primary" variant="outlined" sx={{ height: 22, fontSize: '0.65rem' }} />
+                                  </Stack>
+                                  <LinearProgress variant="determinate" value={progress} sx={{ borderRadius: 1 }} />
+                                </Box>
+                              </CardActionArea>
+                            </Card>
+                          );
+                        })}
+                      </Box>
+                    </Box>
+                  )}
 
-                {completedGoals.length > 0 && (
-                  <div className="animate-in fade-in slide-in-from-top-4 duration-700 delay-200">
-                    <h3 className="text-[11px] font-bold text-emerald-500 uppercase tracking-[0.4em] mb-10 flex items-center gap-3">
-                      <Trophy className="w-4 h-4 animate-pulse" /> SALÃO DE CONQUISTAS
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {completedGoals.map((goal, idx) => (
-                        <div key={goal.id} onClick={() => handleViewGoal(goal.id)} className="group bg-gradient-to-br from-emerald-950/40 to-zinc-950/40 border border-emerald-900/40 hover:border-emerald-500/60 p-8 rounded-2xl cursor-pointer hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300" style={{ animationDelay: `${idx * 100}ms` }}>
-                          <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-xl font-bold text-emerald-200 group-hover:text-emerald-300 transition-colors">{goal.titulo}</h3>
-                            <CheckCircle2 className="w-6 h-6 text-emerald-400 group-hover:scale-110 transition-transform" />
-                          </div>
-                          <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">✓ Jornada Completada</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                  {/* Completed Goals */}
+                  {completedGoals.length > 0 && (
+                    <Box>
+                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 4 }}>
+                        <EmojiEventsIcon sx={{ fontSize: 18, color: 'secondary.main' }} />
+                        <Typography variant="overline" sx={{ color: 'secondary.main', fontSize: '0.7rem' }}>
+                          Salão de Conquistas
+                        </Typography>
+                      </Stack>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
+                        {completedGoals.map((goal) => (
+                          <Card
+                            key={goal.id}
+                            sx={{
+                              cursor: 'pointer',
+                              borderColor: alpha('#10b981', 0.2),
+                              '&:hover': { borderColor: alpha('#10b981', 0.5), transform: 'translateY(-4px)', boxShadow: `0 8px 32px ${alpha('#10b981', 0.1)}` },
+                            }}
+                          >
+                            <CardActionArea onClick={() => handleViewGoal(goal.id)} sx={{ p: 3 }}>
+                              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#6ee7b7' }}>{goal.titulo}</Typography>
+                                <CheckCircleIcon sx={{ fontSize: 24, color: 'secondary.main' }} />
+                              </Stack>
+                              <Typography variant="overline" sx={{ color: 'secondary.dark', fontSize: '0.6rem' }}>
+                                ✓ Jornada Completada
+                              </Typography>
+                            </CardActionArea>
+                          </Card>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+              )}
+            </Box>
+          </Fade>
         )}
 
         {view === 'create' && <GoalWizard onSave={handleSaveGoal} onCancel={() => setView('list')} />}
         {view === 'dashboard' && activeGoal && <GoalDashboard goal={activeGoal} onBack={() => setView('list')} onUpdate={handleUpdateGoal} />}
-      </main>
+      </Container>
 
-      <footer className="max-w-6xl mx-auto px-6 py-16 border-t border-zinc-900/50 text-center">
-        <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] hover:text-zinc-400 transition-colors cursor-pointer">
+      {/* Footer */}
+      <Box sx={{ maxWidth: 1152, mx: 'auto', px: 3, py: 6, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
+        <Typography variant="overline" sx={{ color: 'text.secondary', fontSize: '0.6rem', opacity: 0.6 }}>
           Baseado no Seminário Fênix de Brian Tracy • Transformando Sonhos em Realidade
-        </p>
-      </footer>
-    </div>
+        </Typography>
+      </Box>
+    </Box>
   );
 }
