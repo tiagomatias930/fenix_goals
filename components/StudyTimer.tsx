@@ -18,6 +18,11 @@ import CoffeeIcon from '@mui/icons-material/Coffee';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SettingsIcon from '@mui/icons-material/Settings';
+import MusicNoteIcon from '@mui/icons-material/MusicNote';
+import MusicOffIcon from '@mui/icons-material/MusicOff';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import GraphicEqIcon from '@mui/icons-material/GraphicEq';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
 
 // ──────────────────────────────────────────────────────
 // Método Eslen Delanogare (Neurociência do Aprendizado)
@@ -61,6 +66,128 @@ function getRandomQuote(): string {
 }
 
 type TimerPhase = 'idle' | 'study' | 'short_break' | 'long_break';
+type MusicMode = 'rain' | 'binaural' | 'lofi';
+
+const MUSIC_MODES: { key: MusicMode; label: string; icon: string; description: string }[] = [
+  { key: 'rain', label: 'Chuva', icon: '🌧️', description: 'Som de chuva relaxante' },
+  { key: 'binaural', label: 'Ondas Alpha', icon: '🧠', description: 'Batidas binaurais (10Hz) para foco' },
+  { key: 'lofi', label: 'Lo-fi Ambient', icon: '🎵', description: 'Pad ambiente suave' },
+];
+
+// --- Ambient Sound Generators (Web Audio API) ---
+
+function createPinkNoise(ctx: AudioContext): AudioBufferSourceNode {
+  const bufferSize = ctx.sampleRate * 4; // 4 seconds loop
+  const buffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buffer.getChannelData(ch);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+      b6 = white * 0.115926;
+    }
+  }
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+  return source;
+}
+
+function startRainSound(ctx: AudioContext, dest: AudioNode): AudioNode[] {
+  const pink = createPinkNoise(ctx);
+  // Bandpass filter to make it sound like rain
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = 800;
+  bp.Q.value = 0.5;
+  // Highpass to remove rumble
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 200;
+  pink.connect(bp).connect(hp).connect(dest);
+  pink.start();
+  return [pink, bp, hp];
+}
+
+function startBinauralBeats(ctx: AudioContext, dest: AudioNode): AudioNode[] {
+  // Alpha waves: 10Hz difference for relaxed focus
+  const baseFreq = 200;
+  const beatFreq = 10;
+  const oscL = ctx.createOscillator();
+  oscL.type = 'sine';
+  oscL.frequency.value = baseFreq;
+  const oscR = ctx.createOscillator();
+  oscR.type = 'sine';
+  oscR.frequency.value = baseFreq + beatFreq;
+  // Create stereo panner for left/right
+  const panL = ctx.createStereoPanner();
+  panL.pan.value = -1;
+  const panR = ctx.createStereoPanner();
+  panR.pan.value = 1;
+  // Soft gain
+  const g = ctx.createGain();
+  g.gain.value = 0.6;
+  oscL.connect(panL).connect(g).connect(dest);
+  oscR.connect(panR).connect(g);
+  // Add a soft pad layer
+  const pad = ctx.createOscillator();
+  pad.type = 'sine';
+  pad.frequency.value = 150;
+  const padGain = ctx.createGain();
+  padGain.gain.value = 0.15;
+  pad.connect(padGain).connect(dest);
+  oscL.start();
+  oscR.start();
+  pad.start();
+  return [oscL, oscR, panL, panR, g, pad, padGain];
+}
+
+function startLofiAmbient(ctx: AudioContext, dest: AudioNode): AudioNode[] {
+  const nodes: AudioNode[] = [];
+  // Chord: C3, E3, G3, B3 with slow detuning
+  const freqs = [130.81, 164.81, 196.00, 246.94];
+  freqs.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    // Slow vibrato via LFO
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.1 + i * 0.05;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 2;
+    lfo.connect(lfoGain).connect(osc.frequency);
+    // Soft volume
+    const g = ctx.createGain();
+    g.gain.value = 0.12;
+    // Lowpass to soften
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 400;
+    osc.connect(lp).connect(g).connect(dest);
+    osc.start();
+    lfo.start();
+    nodes.push(osc, lfo, lfoGain, g, lp);
+  });
+  // Add subtle pink noise bed
+  const pink = createPinkNoise(ctx);
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.value = 0.04;
+  const noiseLp = ctx.createBiquadFilter();
+  noiseLp.type = 'lowpass';
+  noiseLp.frequency.value = 600;
+  pink.connect(noiseLp).connect(noiseGain).connect(dest);
+  pink.start();
+  nodes.push(pink, noiseGain, noiseLp);
+  return nodes;
+}
 
 function requestNotificationPermission() {
   if ('Notification' in window && Notification.permission === 'default') {
@@ -113,6 +240,83 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
   const [cyclesBeforeLong, setCyclesBeforeLong] = useState(DELANOGARE_DEFAULTS.cyclesBeforeLongBreak);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Music state
+  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicVolume, setMusicVolume] = useState(0.3);
+  const [musicMode, setMusicMode] = useState<MusicMode>('rain');
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const musicGainRef = useRef<GainNode | null>(null);
+  const musicNodesRef = useRef<AudioNode[]>([]);
+  const musicPlayingRef = useRef(false);
+
+  const startMusic = useCallback(() => {
+    if (!musicEnabled) return;
+    stopMusicInternal();
+    try {
+      const ctx = audioCtxRef.current || new AudioContext();
+      audioCtxRef.current = ctx;
+      if (ctx.state === 'suspended') ctx.resume();
+      const masterGain = ctx.createGain();
+      masterGain.gain.value = musicVolume;
+      masterGain.connect(ctx.destination);
+      musicGainRef.current = masterGain;
+      let nodes: AudioNode[] = [];
+      switch (musicMode) {
+        case 'rain': nodes = startRainSound(ctx, masterGain); break;
+        case 'binaural': nodes = startBinauralBeats(ctx, masterGain); break;
+        case 'lofi': nodes = startLofiAmbient(ctx, masterGain); break;
+      }
+      musicNodesRef.current = [...nodes, masterGain];
+      musicPlayingRef.current = true;
+    } catch { /* Audio not supported */ }
+  }, [musicEnabled, musicVolume, musicMode]);
+
+  function stopMusicInternal() {
+    musicNodesRef.current.forEach(node => {
+      try {
+        if (node instanceof AudioBufferSourceNode || node instanceof OscillatorNode) {
+          node.stop();
+        }
+        node.disconnect();
+      } catch { /* already stopped */ }
+    });
+    musicNodesRef.current = [];
+    musicPlayingRef.current = false;
+  }
+
+  const stopMusic = useCallback(() => {
+    stopMusicInternal();
+  }, []);
+
+  const suspendMusic = useCallback(() => {
+    if (audioCtxRef.current && audioCtxRef.current.state === 'running') {
+      audioCtxRef.current.suspend();
+    }
+  }, []);
+
+  const resumeMusic = useCallback(() => {
+    if (audioCtxRef.current && audioCtxRef.current.state === 'suspended' && musicPlayingRef.current) {
+      audioCtxRef.current.resume();
+    }
+  }, []);
+
+  // Update volume in real-time
+  useEffect(() => {
+    if (musicGainRef.current) {
+      musicGainRef.current.gain.value = musicVolume;
+    }
+  }, [musicVolume]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopMusicInternal();
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(() => {});
+      }
+    };
+  }, []);
 
   // Request notification permission on mount
   useEffect(() => {
@@ -168,6 +372,7 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
   const handlePhaseComplete = useCallback(() => {
     setIsRunning(false);
     playNotificationSound();
+    stopMusic(); // Stop music between phases
 
     if (phase === 'study') {
       // Study session ended → time to rest
@@ -210,7 +415,7 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
       setSecondsLeft(studyMin * 60);
       setTotalSeconds(studyMin * 60);
     }
-  }, [phase, currentCycle, cyclesBeforeLong, longBreakMin, shortBreakMin, studyMin, goalTitle, playNotificationSound]);
+  }, [phase, currentCycle, cyclesBeforeLong, longBreakMin, shortBreakMin, studyMin, goalTitle, playNotificationSound, stopMusic]);
 
   // Overwrite the effect to use the latest handlePhaseComplete
   useEffect(() => {
@@ -238,10 +443,18 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
     setTotalSeconds(secs);
     setIsRunning(true);
     setExpanded(true);
+    if (musicEnabled) startMusic();
   };
 
   const togglePause = () => {
-    setIsRunning(prev => !prev);
+    setIsRunning(prev => {
+      if (prev) {
+        suspendMusic();
+      } else {
+        resumeMusic();
+      }
+      return !prev;
+    });
   };
 
   const stopTimer = () => {
@@ -250,6 +463,7 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
     setSecondsLeft(studyMin * 60);
     setTotalSeconds(studyMin * 60);
     setCurrentCycle(1);
+    stopMusic();
   };
 
   const progressPercent = totalSeconds > 0 ? ((totalSeconds - secondsLeft) / totalSeconds) * 100 : 0;
@@ -433,6 +647,123 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
               ))}
               <CoffeeIcon sx={{ fontSize: 14, color: 'text.secondary', ml: 0.5 }} />
             </Stack>
+
+            {/* Music Controls */}
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2, borderRadius: 3, mb: 2,
+                bgcolor: musicEnabled ? alpha('#8b5cf6', 0.04) : 'transparent',
+                borderColor: musicEnabled ? alpha('#8b5cf6', 0.2) : 'divider',
+                transition: 'all 0.3s',
+              }}
+            >
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: musicEnabled ? 2 : 0 }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  {musicEnabled ? (
+                    <MusicNoteIcon sx={{ fontSize: 18, color: '#8b5cf6' }} />
+                  ) : (
+                    <MusicOffIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                  )}
+                  <Typography variant="overline" sx={{ fontSize: '0.65rem', fontWeight: 700, color: musicEnabled ? '#8b5cf6' : 'text.secondary' }}>
+                    Música de Foco
+                  </Typography>
+                </Stack>
+                <Button
+                  size="small"
+                  variant={musicEnabled ? 'contained' : 'outlined'}
+                  onClick={() => {
+                    const next = !musicEnabled;
+                    setMusicEnabled(next);
+                    if (!next) {
+                      stopMusic();
+                    } else if (phase === 'study' && isRunning) {
+                      // Restart music if timer is already running
+                      setTimeout(() => startMusic(), 50);
+                    }
+                  }}
+                  sx={{
+                    minWidth: 0, px: 1.5, borderRadius: 6, fontSize: '0.65rem', fontWeight: 700,
+                    ...(musicEnabled && { bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }),
+                  }}
+                >
+                  {musicEnabled ? 'ON' : 'OFF'}
+                </Button>
+              </Stack>
+
+              {musicEnabled && (
+                <Fade in>
+                  <Box>
+                    {/* Mode Selection */}
+                    <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                      {MUSIC_MODES.map((mode) => (
+                        <Chip
+                          key={mode.key}
+                          label={`${mode.icon} ${mode.label}`}
+                          size="small"
+                          variant={musicMode === mode.key ? 'filled' : 'outlined'}
+                          onClick={() => {
+                            setMusicMode(mode.key);
+                            // If music is already playing, restart with new mode
+                            if (musicPlayingRef.current && phase === 'study' && isRunning) {
+                              stopMusic();
+                              setTimeout(() => {
+                                // Use a fresh start since mode changed
+                                const ctx = audioCtxRef.current || new AudioContext();
+                                audioCtxRef.current = ctx;
+                                if (ctx.state === 'suspended') ctx.resume();
+                                const masterGain = ctx.createGain();
+                                masterGain.gain.value = musicVolume;
+                                masterGain.connect(ctx.destination);
+                                musicGainRef.current = masterGain;
+                                let nodes: AudioNode[] = [];
+                                switch (mode.key) {
+                                  case 'rain': nodes = startRainSound(ctx, masterGain); break;
+                                  case 'binaural': nodes = startBinauralBeats(ctx, masterGain); break;
+                                  case 'lofi': nodes = startLofiAmbient(ctx, masterGain); break;
+                                }
+                                musicNodesRef.current = [...nodes, masterGain];
+                                musicPlayingRef.current = true;
+                              }, 50);
+                            }
+                          }}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '0.65rem',
+                            ...(musicMode === mode.key && { bgcolor: alpha('#8b5cf6', 0.2), color: '#8b5cf6', borderColor: '#8b5cf6' }),
+                          }}
+                        />
+                      ))}
+                    </Stack>
+
+                    {/* Volume */}
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <VolumeUpIcon sx={{ fontSize: 16, color: '#8b5cf6', opacity: 0.7 }} />
+                      <Slider
+                        value={musicVolume}
+                        onChange={(_, v) => setMusicVolume(v as number)}
+                        min={0.05}
+                        max={0.8}
+                        step={0.05}
+                        size="small"
+                        sx={{
+                          color: '#8b5cf6',
+                          '& .MuiSlider-thumb': { width: 14, height: 14 },
+                        }}
+                      />
+                      <Typography variant="caption" sx={{ color: '#8b5cf6', fontWeight: 700, minWidth: 36, textAlign: 'right' }}>
+                        {Math.round(musicVolume * 100)}%
+                      </Typography>
+                    </Stack>
+
+                    {/* Description */}
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1, lineHeight: 1.4 }}>
+                      {MUSIC_MODES.find(m => m.key === musicMode)?.description} — toca automaticamente ao iniciar o foco.
+                    </Typography>
+                  </Box>
+                </Fade>
+              )}
+            </Paper>
 
             {/* Settings Panel */}
             <Collapse in={showSettings}>

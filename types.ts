@@ -13,7 +13,7 @@ export interface Goal {
   desejo_intensidade: number; // 1-10
   data_limite: string; // ISO string
   hora_limite: string; // HH:mm
-  status: 'em_andamento' | 'concluido';
+  status: 'em_andamento' | 'concluido' | 'nao_concluido';
   
   // Campos da Metodologia Fênix (12 Passos)
   status_escrita: boolean;

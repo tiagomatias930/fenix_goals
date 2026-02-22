@@ -21,6 +21,8 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import BoltIcon from '@mui/icons-material/Bolt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PrintIcon from '@mui/icons-material/Print';
+import ReplayIcon from '@mui/icons-material/Replay';
+import CancelIcon from '@mui/icons-material/Cancel';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 interface GoalDashboardProps {
@@ -34,20 +36,20 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    if (goal.status === 'concluido') return;
+    if (goal.status === 'concluido' || goal.status === 'nao_concluido') return;
     const timer = setInterval(() => {
       const deadline = goal.hora_limite
         ? new Date(`${goal.data_limite}T${goal.hora_limite}`)
         : new Date(goal.data_limite);
       const diff = +deadline - +new Date();
-      if (diff <= 0) { setTimeLeft("Expirado"); return; }
+      if (diff <= 0) { setTimeLeft("Expirado"); onUpdate({ ...goal, status: 'nao_concluido' }); return; }
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const m = Math.floor((diff / (1000 * 60)) % 60);
       setTimeLeft(`${d}d ${h}h ${m}m`);
     }, 1000);
     return () => clearInterval(timer);
-  }, [goal.data_limite, goal.hora_limite, goal.status]);
+  }, [goal.data_limite, goal.hora_limite, goal.status, onUpdate]);
 
   const handleGenerateImage = () => {
     setIsGenerating(true);
@@ -58,13 +60,17 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
   };
 
   const toggleTask = (id: string) => {
-    if (goal.status === 'concluido') return;
+    if (goal.status === 'concluido' || goal.status === 'nao_concluido') return;
     const updated = goal.plano_acao.map(t => t.id === id ? { ...t, completed: !t.completed, completedAt: !t.completed ? Date.now() : undefined } : t);
     onUpdate({ ...goal, plano_acao: updated });
   };
 
   const completeGoal = () => {
     onUpdate({ ...goal, status: 'concluido', completedAt: Date.now() });
+  };
+
+  const reactivateGoal = (newDeadline: string) => {
+    onUpdate({ ...goal, status: 'em_andamento', data_limite: newDeadline });
   };
 
   const completedCount = goal.plano_acao.filter(t => t.completed).length;
@@ -106,8 +112,8 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
             Voltar
           </Button>
           <Chip
-            label={goal.status === 'concluido' ? '✓ Concluído' : 'Em Andamento'}
-            color={goal.status === 'concluido' ? 'success' : 'primary'}
+            label={goal.status === 'concluido' ? '✓ Concluído' : goal.status === 'nao_concluido' ? '✗ Não Concluído' : 'Em Andamento'}
+            color={goal.status === 'concluido' ? 'success' : goal.status === 'nao_concluido' ? 'error' : 'primary'}
             variant="outlined"
             sx={{ fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: '0.65rem' }}
           />
@@ -142,13 +148,19 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
               </Box>
 
               <Stack spacing={2} alignItems={{ xs: 'stretch', md: 'flex-end' }} sx={{ flexShrink: 0 }}>
-                {goal.status !== 'concluido' && (
+                {goal.status !== 'concluido' && goal.status !== 'nao_concluido' && (
                   <Card sx={{ bgcolor: alpha('#f97316', 0.06), border: '1px solid', borderColor: alpha('#f97316', 0.2), textAlign: 'center', px: 3, py: 2 }}>
                     <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.light' }}>{timeLeft}</Typography>
                     <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="center" sx={{ mt: 0.5 }}>
                       <AccessTimeIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
                       <Typography variant="overline" sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>Tempo Restante</Typography>
                     </Stack>
+                  </Card>
+                )}
+                {goal.status === 'nao_concluido' && (
+                  <Card sx={{ bgcolor: alpha('#ef4444', 0.06), border: '1px solid', borderColor: alpha('#ef4444', 0.3), textAlign: 'center', px: 3, py: 2 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 800, color: 'error.main' }}>Prazo Expirado</Typography>
+                    <Typography variant="overline" sx={{ fontSize: '0.6rem', color: 'text.secondary' }}>O tempo limite foi atingido</Typography>
                   </Card>
                 )}
                 <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -167,6 +179,20 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
                       sx={{ borderRadius: 8, fontWeight: 700, fontSize: '0.8rem' }}
                     >
                       Certificado
+                    </Button>
+                  ) : goal.status === 'nao_concluido' ? (
+                    <Button
+                      variant="contained"
+                      color="error"
+                      startIcon={<ReplayIcon />}
+                      onClick={() => {
+                        const newDate = new Date();
+                        newDate.setDate(newDate.getDate() + 30);
+                        reactivateGoal(newDate.toISOString().split('T')[0]);
+                      }}
+                      sx={{ borderRadius: 8, fontWeight: 700, fontSize: '0.8rem' }}
+                    >
+                      Reativar (+30 dias)
                     </Button>
                   ) : (
                     <Button
@@ -203,7 +229,7 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
         </Card>
 
         {/* Study Timer — Método Delanogare */}
-        {goal.status !== 'concluido' && (
+        {goal.status !== 'concluido' && goal.status !== 'nao_concluido' && (
           <StudyTimer goalTitle={goal.titulo} />
         )}
 

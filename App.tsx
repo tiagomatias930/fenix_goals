@@ -17,6 +17,8 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import StarIcon from '@mui/icons-material/Star';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import CancelIcon from '@mui/icons-material/Cancel';
+import ReplayIcon from '@mui/icons-material/Replay';
 
 const STORAGE_KEY = 'fenix_goals';
 
@@ -38,6 +40,26 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
   }, [goals]);
 
+  // Auto-detect expired goals
+  useEffect(() => {
+    const checkExpired = () => {
+      const now = new Date();
+      setGoals(prev => prev.map(g => {
+        if (g.status !== 'em_andamento') return g;
+        const deadline = g.hora_limite
+          ? new Date(`${g.data_limite}T${g.hora_limite}`)
+          : new Date(g.data_limite);
+        if (+deadline <= +now) {
+          return { ...g, status: 'nao_concluido' as const };
+        }
+        return g;
+      }));
+    };
+    checkExpired();
+    const interval = setInterval(checkExpired, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleSaveGoal = (newGoal: Goal) => {
     setGoals((prev) => [...prev, newGoal]);
     setView('list');
@@ -55,6 +77,7 @@ export default function App() {
   const activeGoal = goals.find((g) => g.id === activeGoalId);
   const activeGoals = goals.filter(g => g.status === 'em_andamento');
   const completedGoals = goals.filter(g => g.status === 'concluido');
+  const failedGoals = goals.filter(g => g.status === 'nao_concluido');
 
   return (
     <Box sx={{ minHeight: '100vh' }}>
@@ -191,6 +214,41 @@ export default function App() {
                     </Box>
                   )}
 
+                  {/* Failed Goals */}
+                  {failedGoals.length > 0 && (
+                    <Box>
+                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 4 }}>
+                        <CancelIcon sx={{ fontSize: 18, color: 'error.main' }} />
+                        <Typography variant="overline" sx={{ color: 'error.main', fontSize: '0.7rem' }}>
+                          Não Concluídos
+                        </Typography>
+                      </Stack>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
+                        {failedGoals.map((goal) => (
+                          <Card
+                            key={goal.id}
+                            sx={{
+                              cursor: 'pointer',
+                              borderColor: alpha('#ef4444', 0.2),
+                              opacity: 0.85,
+                              '&:hover': { borderColor: alpha('#ef4444', 0.5), transform: 'translateY(-4px)', opacity: 1 },
+                            }}
+                          >
+                            <CardActionArea onClick={() => handleViewGoal(goal.id)} sx={{ p: 3 }}>
+                              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: alpha('#ef4444', 0.8) }}>{goal.titulo}</Typography>
+                                <CancelIcon sx={{ fontSize: 24, color: 'error.main' }} />
+                              </Stack>
+                              <Typography variant="overline" sx={{ color: 'error.dark', fontSize: '0.6rem' }}>
+                                ✗ Prazo Expirado
+                              </Typography>
+                            </CardActionArea>
+                          </Card>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
                   {/* Completed Goals */}
                   {completedGoals.length > 0 && (
                     <Box>
@@ -232,6 +290,7 @@ export default function App() {
 
         {view === 'create' && <GoalWizard onSave={handleSaveGoal} onCancel={() => setView('list')} />}
         {view === 'dashboard' && activeGoal && <GoalDashboard goal={activeGoal} onBack={() => setView('list')} onUpdate={handleUpdateGoal} />}
+
       </Container>
 
       {/* Footer */}
