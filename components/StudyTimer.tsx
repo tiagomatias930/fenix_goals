@@ -372,10 +372,9 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
   const handlePhaseComplete = useCallback(() => {
     setIsRunning(false);
     playNotificationSound();
-    stopMusic(); // Stop music between phases
+    stopMusic();
 
     if (phase === 'study') {
-      // Study session ended → time to rest
       const isLongBreak = currentCycle % cyclesBeforeLong === 0;
       const breakMinutes = isLongBreak ? longBreakMin : shortBreakMin;
       const breakType = isLongBreak ? 'long_break' : 'short_break';
@@ -393,9 +392,8 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
       const breakSeconds = breakMinutes * 60;
       setSecondsLeft(breakSeconds);
       setTotalSeconds(breakSeconds);
-      setIsRunning(true); // Auto-start break timer
+      setIsRunning(true);
     } else {
-      // Break ended → time to return
       const quote = getRandomQuote();
       setReturnQuote(quote);
       setShowReturnDialog(true);
@@ -417,7 +415,6 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
     }
   }, [phase, currentCycle, cyclesBeforeLong, longBreakMin, shortBreakMin, studyMin, goalTitle, playNotificationSound, stopMusic]);
 
-  // Overwrite the effect to use the latest handlePhaseComplete
   useEffect(() => {
     if (!isRunning || phase === 'idle') return;
 
@@ -425,7 +422,6 @@ export default function StudyTimer({ goalTitle }: StudyTimerProps) {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          // Directly call the phase transition
           setTimeout(() => handlePhaseComplete(), 0);
           return 0;
         }
