@@ -29,3 +29,12 @@ export interface Goal {
   completedAt?: number;
   createdAt: number;
 }
+
+export interface DailyTask {
+  id: string;
+  text: string;
+  completed: boolean;
+  date: string; // YYYY-MM-DD
+  goalId?: string | null;
+  completedAt?: number;
+}

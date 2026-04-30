@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Goal } from './types';
+import { Goal, DailyTask } from './types';
 import GoalWizard from './components/GoalWizard';
 import GoalDashboard from './components/GoalDashboard';
+import DailyTasks from './components/DailyTasks';
 import {
   AppBar, Toolbar, Typography, Button, Container, Box, Card, CardContent,
   CardActionArea, Chip, LinearProgress, Stack, Fade, Grow
@@ -21,6 +22,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import ReplayIcon from '@mui/icons-material/Replay';
 
 const STORAGE_KEY = 'fenix_goals';
+const STORAGE_KEY_DAILY = 'fenix_daily_tasks';
 
 function loadGoals(): Goal[] {
   try {
@@ -31,14 +33,28 @@ function loadGoals(): Goal[] {
   }
 }
 
+function loadDailyTasks(): DailyTask[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_DAILY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function App() {
   const [goals, setGoals] = useState<Goal[]>(loadGoals);
+  const [dailyTasks, setDailyTasks] = useState<DailyTask[]>(loadDailyTasks);
   const [view, setView] = useState<'list' | 'create' | 'dashboard'>('list');
   const [activeGoalId, setActiveGoalId] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
   }, [goals]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_DAILY, JSON.stringify(dailyTasks));
+  }, [dailyTasks]);
 
   // Auto-detect expired goals
   useEffect(() => {
@@ -63,6 +79,25 @@ export default function App() {
   const handleSaveGoal = (newGoal: Goal) => {
     setGoals((prev) => [...prev, newGoal]);
     setView('list');
+  };
+
+  const todayISO = () => new Date().toISOString().split('T')[0];
+
+  const addDailyTask = (text: string, goalId?: string | null, date?: string) => {
+    const dt: DailyTask = { id: crypto.randomUUID(), text: text.trim(), completed: false, date: date || todayISO(), goalId: goalId || null };
+    setDailyTasks(prev => [dt, ...prev]);
+  };
+
+  const toggleDailyTask = (id: string) => {
+    setDailyTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed, completedAt: !t.completed ? Date.now() : undefined } : t));
+  };
+
+  const deleteDailyTask = (id: string) => {
+    setDailyTasks(prev => prev.filter(t => t.id !== id));
+  };
+
+  const assignTaskToGoal = (id: string, goalId?: string | null) => {
+    setDailyTasks(prev => prev.map(t => t.id === id ? { ...t, goalId: goalId || null } : t));
   };
 
   const handleUpdateGoal = (updatedGoal: Goal) => {
@@ -146,6 +181,16 @@ export default function App() {
                   </CardContent>
                 </Card>
               </Box>
+
+              {/* Daily Tasks */}
+              <DailyTasks
+                dailyTasks={dailyTasks}
+                goals={goals}
+                onAdd={addDailyTask}
+                onToggle={toggleDailyTask}
+                onDelete={deleteDailyTask}
+                onAssign={assignTaskToGoal}
+              />
 
               {/* Empty State */}
               {goals.length === 0 ? (
@@ -289,7 +334,16 @@ export default function App() {
         )}
 
         {view === 'create' && <GoalWizard onSave={handleSaveGoal} onCancel={() => setView('list')} />}
-        {view === 'dashboard' && activeGoal && <GoalDashboard goal={activeGoal} onBack={() => setView('list')} onUpdate={handleUpdateGoal} />}
+        {view === 'dashboard' && activeGoal && (
+          <GoalDashboard
+            goal={activeGoal}
+            onBack={() => setView('list')}
+            onUpdate={handleUpdateGoal}
+            dailyTasks={dailyTasks}
+            onToggleDailyTask={toggleDailyTask}
+            onDeleteDailyTask={deleteDailyTask}
+          />
+        )}
 
       </Container>
 

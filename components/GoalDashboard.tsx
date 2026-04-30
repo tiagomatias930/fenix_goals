@@ -21,6 +21,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import BoltIcon from '@mui/icons-material/Bolt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PrintIcon from '@mui/icons-material/Print';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ReplayIcon from '@mui/icons-material/Replay';
 import CancelIcon from '@mui/icons-material/Cancel';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
@@ -29,9 +30,12 @@ interface GoalDashboardProps {
   goal: Goal;
   onBack: () => void;
   onUpdate: (goal: Goal) => void;
+  dailyTasks?: import('../types').DailyTask[];
+  onToggleDailyTask?: (id: string) => void;
+  onDeleteDailyTask?: (id: string) => void;
 }
 
-export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardProps) {
+export default function GoalDashboard({ goal, onBack, onUpdate, dailyTasks, onToggleDailyTask, onDeleteDailyTask }: GoalDashboardProps) {
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -256,6 +260,44 @@ export default function GoalDashboard({ goal, onBack, onUpdate }: GoalDashboardP
                 </Stack>
               </CardContent>
             </Card>
+
+            {/* Daily Tasks linked to this goal */}
+            {dailyTasks && (
+              <Card>
+                <CardContent sx={{ p: 3 }}>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                    <WhatshotIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                    <Typography variant="overline" sx={{ color: 'primary.light', fontSize: '0.65rem' }}>
+                      Tarefas Diárias (vinculadas)
+                    </Typography>
+                  </Stack>
+                  <List disablePadding>
+                    {dailyTasks.filter(t => t.goalId === goal.id).map((t) => (
+                      <ListItem key={t.id} disablePadding secondaryAction={
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Chip label={t.date} size="small" />
+                          <IconButton edge="end" onClick={() => onDeleteDailyTask && onDeleteDailyTask(t.id)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Stack>
+                      }>
+                        <ListItemButton onClick={() => onToggleDailyTask && onToggleDailyTask(t.id)}>
+                          <ListItemIcon sx={{ minWidth: 40 }}>
+                            {t.completed ? <CheckCircleIcon sx={{ color: 'primary.main' }} /> : <RadioButtonUncheckedIcon sx={{ color: 'text.secondary' }} />}
+                          </ListItemIcon>
+                          <ListItemText primary={t.text} secondary={t.completed ? `Concluída` : ''} />
+                        </ListItemButton>
+                      </ListItem>
+                    ))}
+                    {dailyTasks.filter(t => t.goalId === goal.id).length === 0 && (
+                      <ListItem>
+                        <ListItemText primary="Nenhuma tarefa vinculada a este objetivo" />
+                      </ListItem>
+                    )}
+                  </List>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Obstacle */}
             <Card sx={{ borderColor: alpha('#ef4444', 0.2), '&:hover': { borderColor: alpha('#ef4444', 0.4) } }}>
