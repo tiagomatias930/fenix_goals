@@ -77,6 +77,21 @@ export default function GoalDashboard({ goal, onBack, onUpdate, dailyTasks, onTo
     onUpdate({ ...goal, status: 'em_andamento', data_limite: newDeadline });
   };
 
+  const redoGoal = () => {
+    // Reset all tasks to incomplete and clear completedAt
+    const resetTasks = goal.plano_acao.map(t => ({ ...t, completed: false, completedAt: undefined }));
+    // Set new deadline 30 days from now
+    const newDate = new Date();
+    newDate.setDate(newDate.getDate() + 30);
+    onUpdate({ 
+      ...goal, 
+      status: 'em_andamento', 
+      data_limite: newDate.toISOString().split('T')[0],
+      plano_acao: resetTasks,
+      completedAt: undefined
+    });
+  };
+
   const completedCount = goal.plano_acao.filter(t => t.completed).length;
   const totalCount = goal.plano_acao.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
@@ -176,14 +191,24 @@ export default function GoalDashboard({ goal, onBack, onUpdate, dailyTasks, onTo
                     {isGenerating ? <CircularProgress size={20} /> : <AutoAwesomeIcon />}
                   </IconButton>
                   {goal.status === 'concluido' ? (
-                    <Button
-                      variant="outlined"
-                      startIcon={<PrintIcon />}
-                      onClick={() => window.print()}
-                      sx={{ borderRadius: 8, fontWeight: 700, fontSize: '0.8rem' }}
-                    >
-                      Certificado
-                    </Button>
+                    <Stack direction="row" spacing={1} flex={1} justifyContent="flex-end">
+                      <Button
+                        variant="outlined"
+                        startIcon={<PrintIcon />}
+                        onClick={() => window.print()}
+                        sx={{ borderRadius: 8, fontWeight: 700, fontSize: '0.8rem' }}
+                      >
+                        Certificado
+                      </Button>
+                      <Button
+                        variant="contained"
+                        startIcon={<ReplayIcon />}
+                        onClick={redoGoal}
+                        sx={{ borderRadius: 8, fontWeight: 700, fontSize: '0.8rem', bgcolor: alpha('#f97316', 0.8), '&:hover': { bgcolor: 'primary.main' } }}
+                      >
+                        Refazer
+                      </Button>
+                    </Stack>
                   ) : goal.status === 'nao_concluido' ? (
                     <Button
                       variant="contained"
