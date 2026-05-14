@@ -28,6 +28,12 @@ export interface Goal {
   // Metadados
   completedAt?: number;
   createdAt: number;
+  
+  // Compartilhamento
+  shareToken?: string;
+  sharedBy?: string;
+  sharedAt?: number;
+  isShared?: boolean;
 }
 
 export interface DailyTask {

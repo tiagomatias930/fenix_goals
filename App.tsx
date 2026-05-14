@@ -6,7 +6,7 @@ import GoalDashboard from './components/GoalDashboard';
 import DailyTasks from './components/DailyTasks';
 import {
   AppBar, Toolbar, Typography, Button, Container, Box, Card, CardContent,
-  CardActionArea, Chip, LinearProgress, Stack, Fade, Grow
+  CardActionArea, Chip, LinearProgress, Stack, Fade, Grow, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
@@ -20,9 +20,12 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ReplayIcon from '@mui/icons-material/Replay';
+import ShareIcon from '@mui/icons-material/Share';
+import CheckIcon from '@mui/icons-material/Check';
 
 const STORAGE_KEY = 'fenix_goals';
 const STORAGE_KEY_DAILY = 'fenix_daily_tasks';
+const STORAGE_KEY_SHARED = 'fenix_shared_goals';
 
 function loadGoals(): Goal[] {
   try {
@@ -42,11 +45,34 @@ function loadDailyTasks(): DailyTask[] {
   }
 }
 
+function loadSharedGoals(): Record<string, Goal> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_SHARED);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function generateShareToken(): string {
+  return Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+}
+
+function getShareLink(token: string): string {
+  const baseUrl = window.location.origin + window.location.pathname;
+  return `${baseUrl}?share=${token}`;
+}
+
 export default function App() {
   const [goals, setGoals] = useState<Goal[]>(loadGoals);
   const [dailyTasks, setDailyTasks] = useState<DailyTask[]>(loadDailyTasks);
+  const [sharedGoals, setSharedGoals] = useState<Record<string, Goal>>(loadSharedGoals);
   const [view, setView] = useState<'list' | 'create' | 'dashboard'>('list');
   const [activeGoalId, setActiveGoalId] = useState<string | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareLink, setShareLink] = useState('');
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [goalToImport, setGoalToImport] = useState<Goal | null>(null);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
@@ -55,6 +81,25 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_DAILY, JSON.stringify(dailyTasks));
   }, [dailyTasks]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_SHARED, JSON.stringify(sharedGoals));
+  }, [sharedGoals]);
+
+  // Check for share token in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shareToken = params.get('share');
+    if (shareToken) {
+      const shared = sharedGoals[shareToken];
+      if (shared) {
+        setGoalToImport(shared);
+        setImportDialogOpen(true);
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [sharedGoals]);
 
   // Auto-detect expired goals
   useEffect(() => {
@@ -107,6 +152,36 @@ export default function App() {
   const handleViewGoal = (id: string) => {
     setActiveGoalId(id);
     setView('dashboard');
+  };
+
+  const handleShareGoal = (goalId: string) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (goal) {
+      const token = generateShareToken();
+      const goalWithToken = { ...goal, shareToken: token, sharedAt: Date.now() };
+      setSharedGoals(prev => ({ ...prev, [token]: goalWithToken }));
+      setShareLink(getShareLink(token));
+      setShareDialogOpen(true);
+    }
+  };
+
+  const handleImportGoal = () => {
+    if (goalToImport) {
+      const newGoal = {
+        ...goalToImport,
+        id: crypto.randomUUID(),
+        createdAt: Date.now(),
+        plano_acao: goalToImport.plano_acao.map(t => ({ ...t, completed: false, completedAt: undefined })),
+        status: 'em_andamento' as const,
+        completedAt: undefined,
+        isShared: true,
+        sharedBy: goalToImport.titulo,
+      };
+      setGoals(prev => [...prev, newGoal]);
+      setImportDialogOpen(false);
+      setGoalToImport(null);
+      setView('list');
+    }
   };
 
   const activeGoal = goals.find((g) => g.id === activeGoalId);
@@ -339,6 +414,7 @@ export default function App() {
             goal={activeGoal}
             onBack={() => setView('list')}
             onUpdate={handleUpdateGoal}
+            onShare={handleShareGoal}
             dailyTasks={dailyTasks}
             onToggleDailyTask={toggleDailyTask}
             onDeleteDailyTask={deleteDailyTask}
@@ -346,6 +422,68 @@ export default function App() {
         )}
 
       </Container>
+
+      {/* Share Dialog */}
+      <Dialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1.2rem' }}>Compartilhar Objetivo</DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Stack spacing={3}>
+            <Box>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+                Link de Compartilhamento:
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, p: 1.5, bgcolor: alpha('#f97316', 0.05), borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="body2" sx={{ flex: 1, wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                  {shareLink}
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareLink);
+                  }}
+                  sx={{ flexShrink: 0 }}
+                >
+                  Copiar
+                </Button>
+              </Box>
+            </Box>
+            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
+              Compartilhe este link para que outras pessoas possam importar e continuar este objetivo em suas próprias contas.
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setShareDialogOpen(false)}>Fechar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Import Dialog */}
+      <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1.2rem' }}>Importar Objetivo Compartilhado</DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          {goalToImport && (
+            <Stack spacing={2}>
+              <Box sx={{ p: 2, bgcolor: alpha('#f97316', 0.05), borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+                  Objetivo:
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  {goalToImport.titulo}
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Este objetivo será importado com todas as suas informações e você poderá começar a trabalhar nele do zero.
+              </Typography>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setImportDialogOpen(false)}>Cancelar</Button>
+          <Button variant="contained" startIcon={<CheckIcon />} onClick={handleImportGoal}>
+            Importar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Footer */}
       <Box sx={{ maxWidth: 1152, mx: 'auto', px: 3, py: 6, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>

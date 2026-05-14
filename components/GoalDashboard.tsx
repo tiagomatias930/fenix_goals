@@ -25,17 +25,19 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ReplayIcon from '@mui/icons-material/Replay';
 import CancelIcon from '@mui/icons-material/Cancel';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import ShareIcon from '@mui/icons-material/Share';
 
 interface GoalDashboardProps {
   goal: Goal;
   onBack: () => void;
   onUpdate: (goal: Goal) => void;
+  onShare?: (goalId: string) => void;
   dailyTasks?: import('../types').DailyTask[];
   onToggleDailyTask?: (id: string) => void;
   onDeleteDailyTask?: (id: string) => void;
 }
 
-export default function GoalDashboard({ goal, onBack, onUpdate, dailyTasks, onToggleDailyTask, onDeleteDailyTask }: GoalDashboardProps) {
+export default function GoalDashboard({ goal, onBack, onUpdate, onShare, dailyTasks, onToggleDailyTask, onDeleteDailyTask }: GoalDashboardProps) {
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -189,6 +191,12 @@ export default function GoalDashboard({ goal, onBack, onUpdate, dailyTasks, onTo
                     sx={{ border: '1px solid', borderColor: 'divider', '&:hover': { borderColor: 'primary.main', color: 'primary.main' } }}
                   >
                     {isGenerating ? <CircularProgress size={20} /> : <AutoAwesomeIcon />}
+                  </IconButton>
+                  <IconButton
+                    onClick={() => onShare && onShare(goal.id)}
+                    sx={{ border: '1px solid', borderColor: 'divider', '&:hover': { borderColor: 'primary.main', color: 'primary.main' } }}
+                  >
+                    <ShareIcon />
                   </IconButton>
                   {goal.status === 'concluido' ? (
                     <Stack direction="row" spacing={1} flex={1} justifyContent="flex-end">
